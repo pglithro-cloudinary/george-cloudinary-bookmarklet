@@ -1,0 +1,356 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cloudinary Image Savings Bookmarklet — George (Asda) demo</title>
+<style>
+  :root {
+    --bg: #f6f7f9;
+    --card: #ffffff;
+    --text: #16181d;
+    --muted: #5d6470;
+    --line: #e3e6ea;
+    --green: #00893C;
+    --green-bright: #00C853;
+    --code-bg: #f1f3f5;
+    --blue: #3448c5;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #101318;
+      --card: #171b21;
+      --text: #e9ecf1;
+      --muted: #9aa3b0;
+      --line: #262c35;
+      --green: #00C853;
+      --green-bright: #22e06a;
+      --code-bg: #0c0f13;
+      --blue: #8fa0ff;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 0 20px 80px;
+    background: var(--bg);
+    color: var(--text);
+    font: 16px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  .wrap { max-width: 820px; margin: 0 auto; }
+  header { padding: 56px 0 32px; }
+  .eyebrow {
+    display: inline-block; font-size: 12px; letter-spacing: .14em; text-transform: uppercase;
+    color: var(--green); font-weight: 700; margin-bottom: 12px;
+  }
+  h1 { font-size: 34px; line-height: 1.2; margin: 0 0 12px; letter-spacing: -0.02em; }
+  h2 { font-size: 21px; margin: 40px 0 12px; letter-spacing: -0.01em; }
+  h3 { font-size: 16px; margin: 24px 0 8px; }
+  p { margin: 0 0 14px; }
+  .lede { font-size: 18px; color: var(--muted); max-width: 62ch; }
+  .card {
+    background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+    padding: 24px; margin: 20px 0;
+  }
+  .install-card { text-align: center; padding: 32px 24px; }
+  .bookmarklet {
+    display: inline-block;
+    background: linear-gradient(180deg, var(--green-bright), var(--green));
+    color: #fff; text-decoration: none; font-weight: 700; font-size: 17px;
+    padding: 14px 26px; border-radius: 10px; cursor: grab;
+    box-shadow: 0 2px 10px rgba(0,137,60,.35);
+    border: 1px solid rgba(0,0,0,.08);
+  }
+  .bookmarklet:active { cursor: grabbing; }
+  .hint { color: var(--muted); font-size: 14px; margin-top: 14px; }
+  ol, ul { padding-left: 22px; margin: 0 0 14px; }
+  li { margin-bottom: 8px; }
+  code {
+    background: var(--code-bg); border: 1px solid var(--line); border-radius: 5px;
+    padding: 1px 5px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 13.5px;
+  }
+  pre {
+    background: var(--code-bg); border: 1px solid var(--line); border-radius: 10px;
+    padding: 14px; overflow-x: auto; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 12.5px; line-height: 1.5; margin: 0;
+  }
+  textarea {
+    width: 100%; height: 130px; background: var(--code-bg); color: var(--text);
+    border: 1px solid var(--line); border-radius: 10px; padding: 12px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px; resize: vertical;
+  }
+  button.copy {
+    margin-top: 10px; background: var(--card); color: var(--text); border: 1px solid var(--line);
+    border-radius: 8px; padding: 8px 14px; font-size: 14px; cursor: pointer; font-weight: 600;
+  }
+  button.copy:hover { border-color: var(--green); color: var(--green); }
+  details { margin-top: 12px; }
+  summary { cursor: pointer; font-weight: 600; color: var(--muted); }
+  .note {
+    border-left: 3px solid var(--green); background: var(--card);
+    padding: 12px 16px; border-radius: 0 8px 8px 0; margin: 16px 0; color: var(--muted); font-size: 15px;
+  }
+  .steps { counter-reset: none; }
+  .browser { border-top: 1px solid var(--line); padding-top: 18px; margin-top: 18px; }
+  .browser:first-child { border-top: 0; padding-top: 0; margin-top: 0; }
+  footer { color: var(--muted); font-size: 14px; margin-top: 48px; border-top: 1px solid var(--line); padding-top: 18px; }
+  .preview-badge {
+    display: inline-block; background: linear-gradient(180deg, #00C853, #00893C);
+    color: #fff; border: 2px solid #fff; border-radius: 8px; padding: 6px 10px;
+    font-family: ui-monospace, Menlo, monospace; text-align: center; line-height: 1.25;
+    box-shadow: 0 2px 12px rgba(0,200,83,.55);
+  }
+  .preview-badge b { font-size: 18px; display: block; }
+  .preview-badge span { font-size: 11px; opacity: .95; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <span class="eyebrow">Cloudinary · Sales demo tool</span>
+  <h1>George (Asda) image savings bookmarklet</h1>
+  <p class="lede">
+    A one-click browser bookmark that scans any george.com page, re-fetches every
+    <code>asda.scene7.com</code> image through Cloudinary with <code>f_auto</code> / <code>q_auto:eco</code>,
+    and overlays the byte savings in green directly on each image.
+  </p>
+</header>
+
+<div class="card install-card">
+  <p style="margin-bottom:18px;font-weight:600;">Drag this button to your bookmarks bar 👇</p>
+  <a class="bookmarklet" id="bm" href="#">⬇ Cloudinary Savings</a>
+  <p class="hint">Clicking it here won't do anything useful — it needs to run <em>on</em> a George page.</p>
+</div>
+
+<h2>How to install it</h2>
+
+<div class="card">
+  <div class="browser">
+    <h3>Chrome / Edge / Firefox (easiest)</h3>
+    <ol>
+      <li>Show your bookmarks bar if it's hidden: <code>⌘⇧B</code> on Mac, <code>Ctrl+Shift+B</code> on Windows.</li>
+      <li>Drag the green <strong>⬇ Cloudinary Savings</strong> button above onto the bookmarks bar.</li>
+      <li>That's it — the bookmark is now a mini script rather than a link.</li>
+    </ol>
+  </div>
+
+  <div class="browser">
+    <h3>Safari</h3>
+    <p>Safari won't let you drag a bookmarklet straight to the Favourites bar, so add it manually:</p>
+    <ol>
+      <li>Show the Favourites bar: <strong>View → Show Favourites Bar</strong>.</li>
+      <li>Bookmark any page (<code>⌘D</code>) into <strong>Favourites</strong> and name it <em>Cloudinary Savings</em>.</li>
+      <li>Open <strong>Bookmarks → Edit Bookmarks</strong>, right-click your new bookmark and choose <strong>Edit Address</strong>.</li>
+      <li>Copy the code from the box below and paste it in as the address, then press Enter.</li>
+    </ol>
+  </div>
+
+  <div class="browser">
+    <h3>Manual install (any browser)</h3>
+    <ol>
+      <li>Copy the code below.</li>
+      <li>Create a new bookmark and paste the code into the <strong>URL / Address</strong> field (not the name field).</li>
+      <li>Save. Don't paste it into the address bar — most browsers strip the <code>javascript:</code> prefix when you type there.</li>
+    </ol>
+    <textarea id="code" readonly spellcheck="false"></textarea>
+    <button class="copy" id="copyBtn">Copy bookmarklet code</button>
+  </div>
+</div>
+
+<h2>How to use it</h2>
+<div class="card">
+  <ol>
+    <li>Go to any <strong>george.com</strong> page with product imagery — a category listing works best.</li>
+    <li>Scroll down so the lazy-loaded images actually load. The bookmarklet only sees images already in the DOM.</li>
+    <li>Click the <strong>⬇ Cloudinary Savings</strong> bookmark.</li>
+    <li>Each Scene7 image gets a bright green badge with its saving, and a summary panel appears bottom-right with the page total.</li>
+    <li>Open the console (<code>⌘⌥J</code> / <code>F12</code>) for the full per-image breakdown with both URLs.</li>
+    <li>Use <strong>Hide overlays</strong> in the summary panel to flip between the clean page and the annotated one while presenting.</li>
+  </ol>
+  <p style="margin-top:18px;margin-bottom:8px;font-weight:600;">What the badges look like:</p>
+  <span class="preview-badge"><b>↓ 62.4%</b><span>184.2 KB saved<br>295 KB → 111 KB</span></span>
+</div>
+
+<h2>Good to know</h2>
+<div class="note">
+  <ul style="margin:0;padding-left:18px;">
+    <li>Sizes come from the <code>content-length</code> header on a <code>HEAD</code> request, so any image served without that header is skipped from the totals.</li>
+    <li>The Cloudinary side uses the <code>patrickg</code> cloud in fetch mode. First run on a new image is a cache miss, so the numbers are stable but the fetch can be a little slow.</li>
+    <li>Savings reflect format and quality only (<code>f_auto</code>, <code>q_auto:eco</code>) — no resizing. Adding responsive sizing would push the numbers considerably further, which is a good thing to say out loud in the room.</li>
+    <li>The page's own CSP can block the Cloudinary fetches on some sites. If every image comes back empty, check the console for CSP errors.</li>
+    <li>Refresh the page to clear all the overlays.</li>
+  </ul>
+</div>
+
+<details>
+  <summary>View the readable source</summary>
+  <pre id="src"></pre>
+</details>
+
+<footer>
+  Internal demo tool · Cloudinary fetch delivery from <code>res.cloudinary.com/patrickg</code>
+</footer>
+
+</div>
+
+<script>
+// ---- The bookmarklet payload. Edited to make the savings loud and green. ----
+async function cloudinarySavings() {
+  const domain = "asda.scene7.com";
+  const cloudinaryPrefix = "https://res.cloudinary.com/patrickg/image/fetch/q_auto:eco,f_auto/";
+  const GREEN = "#00C853", GREEN_DEEP = "#00893C";
+
+  const images = Array.from(document.images).filter(img => img.src.includes(domain));
+  if (images.length === 0) { alert("No images from " + domain + " found."); return; }
+
+  performance?.clearResourceTimings?.();
+  performance?.setResourceTimingBufferSize?.(500);
+  window.addEventListener("resourcetimingbufferfull", ev => {
+    ev.stopImmediatePropagation();
+    performance.clearResourceTimings?.();
+  });
+
+  const acceptHeader = navigator.userAgent.includes("Safari") && !navigator.userAgent.includes("Chrome")
+    ? "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8"
+    : "image/avif,image/webp,image/apng,image/*,*/*;q=0.8";
+
+  let totalOrig = 0, totalCld = 0;
+  const badges = [], touched = [];
+
+  const results = await Promise.all(images.map(async img => {
+    const origUrl = img.src, cldUrl = cloudinaryPrefix + encodeURIComponent(origUrl);
+    let origSize = null, cldSize = null;
+
+    try {
+      const respOrig = await fetch(origUrl, { method: "HEAD" });
+      const lenOrig = respOrig.headers.get("content-length");
+      if (lenOrig) { origSize = Number(lenOrig); totalOrig += origSize; }
+    } catch {}
+
+    try {
+      const respCld = await fetch(cldUrl, { method: "HEAD", headers: { "Accept": acceptHeader } });
+      const lenCld = respCld.headers.get("content-length");
+      if (lenCld) { cldSize = Number(lenCld); totalCld += cldSize; }
+    } catch {}
+
+    if (img && origSize && cldSize) {
+      const savedBytes = origSize - cldSize;
+      const savedKB = (savedBytes / 1000).toFixed(1);
+      const savedPct = ((1 - cldSize / origSize) * 100).toFixed(1);
+
+      const badge = document.createElement("div");
+      badge.innerHTML =
+        '<div style="font-weight:800;font-size:19px;line-height:1.1;letter-spacing:-0.5px;">&#8595; ' + savedPct + '%</div>' +
+        '<div style="font-size:12px;font-weight:700;margin-top:2px;">' + savedKB + ' KB saved</div>' +
+        '<div style="font-size:10px;opacity:.9;margin-top:1px;">' +
+          (origSize / 1000).toFixed(0) + ' KB &rarr; ' + (cldSize / 1000).toFixed(0) + ' KB</div>';
+
+      Object.assign(badge.style, {
+        position: "absolute", top: "6px", left: "6px",
+        background: "linear-gradient(180deg," + GREEN + "," + GREEN_DEEP + ")",
+        color: "#fff", padding: "7px 10px", textAlign: "center",
+        fontFamily: "ui-monospace,Menlo,Consolas,monospace",
+        border: "2px solid #ffffff", borderRadius: "10px",
+        boxShadow: "0 2px 14px rgba(0,200,83,.65)",
+        zIndex: 999999, pointerEvents: "none", textShadow: "0 1px 2px rgba(0,0,0,.35)"
+      });
+
+      const wrapper = document.createElement("div");
+      wrapper.style.position = "relative";
+      img.parentNode.insertBefore(wrapper, img);
+      wrapper.appendChild(img);
+      wrapper.appendChild(badge);
+
+      const prevOutline = img.style.outline, prevOffset = img.style.outlineOffset;
+      img.style.outline = "3px solid " + GREEN;
+      img.style.outlineOffset = "-3px";
+
+      badges.push(badge);
+      touched.push({ img: img, prevOutline: prevOutline, prevOffset: prevOffset });
+    }
+
+    return "Image:\n" + origUrl + "\nCloudinary URL:\n" + cldUrl +
+      "\nOriginal: " + (origSize / 1000).toFixed(2) + " KB" +
+      "\nCloudinary: " + (cldSize / 1000).toFixed(2) + " KB" +
+      "\nSaved: " + ((origSize - cldSize) / 1000).toFixed(2) + " KB (" +
+      ((1 - cldSize / origSize) * 100).toFixed(1) + "%)";
+  }));
+
+  const totalOrigKB = (totalOrig / 1000).toFixed(2);
+  const totalCldKB = (totalCld / 1000).toFixed(2);
+  const totalSavedKB = (totalOrig - totalCld) / 1000;
+  const totalPct = totalOrig > 0 ? ((totalSavedKB / (totalOrig / 1000)) * 100).toFixed(1) : "0";
+
+  console.log(results.join("\n\n"));
+  console.log("\nTotal Original: " + totalOrigKB + " KB\nTotal Cloudinary: " + totalCldKB +
+    " KB\nSaved: " + totalSavedKB.toFixed(2) + " KB (" + totalPct + "%)");
+
+  // Green summary panel, replaces squinting at an alert box.
+  const panel = document.createElement("div");
+  panel.innerHTML =
+    '<div style="font-size:11px;letter-spacing:.12em;text-transform:uppercase;opacity:.9;">Cloudinary would save</div>' +
+    '<div style="font-size:38px;font-weight:800;line-height:1.05;margin:4px 0 2px;">' + totalPct + '%</div>' +
+    '<div style="font-size:15px;font-weight:700;">' + totalSavedKB.toFixed(1) + ' KB across ' + badges.length + ' images</div>' +
+    '<div style="font-size:12px;opacity:.92;margin-top:6px;">' + totalOrigKB + ' KB &rarr; ' + totalCldKB + ' KB</div>';
+  Object.assign(panel.style, {
+    position: "fixed", bottom: "16px", right: "16px", zIndex: 1000000,
+    background: "linear-gradient(180deg," + GREEN + "," + GREEN_DEEP + ")",
+    color: "#fff", padding: "16px 18px", borderRadius: "14px",
+    border: "2px solid #ffffff", boxShadow: "0 6px 28px rgba(0,0,0,.35)",
+    fontFamily: "system-ui,-apple-system,sans-serif", minWidth: "210px",
+    textShadow: "0 1px 2px rgba(0,0,0,.3)"
+  });
+
+  const toggle = document.createElement("button");
+  toggle.textContent = "Hide overlays";
+  Object.assign(toggle.style, {
+    marginTop: "12px", width: "100%", background: "rgba(255,255,255,.95)",
+    color: GREEN_DEEP, padding: "7px 10px", border: "none", borderRadius: "8px",
+    cursor: "pointer", fontSize: "13px", fontWeight: "700",
+    fontFamily: "system-ui,-apple-system,sans-serif"
+  });
+  panel.appendChild(toggle);
+  document.body.appendChild(panel);
+
+  let visible = true;
+  toggle.addEventListener("click", () => {
+    visible = !visible;
+    badges.forEach(b => { b.style.display = visible ? "block" : "none"; });
+    touched.forEach(t => {
+      t.img.style.outline = visible ? "3px solid " + GREEN : t.prevOutline;
+      t.img.style.outlineOffset = visible ? "-3px" : t.prevOffset;
+    });
+    toggle.textContent = visible ? "Hide overlays" : "Show overlays";
+  });
+}
+
+// ---- Wire it into the page ----
+(function () {
+  const source = "(" + cloudinarySavings.toString() + ")();";
+  const href = "javascript:" + encodeURIComponent(source);
+  const link = document.getElementById("bm");
+  link.href = href;
+  link.addEventListener("click", e => {
+    e.preventDefault();
+    alert("Drag this button to your bookmarks bar instead of clicking it — it only does something on a George page.");
+  });
+  document.getElementById("code").value = href;
+  document.getElementById("src").textContent = source;
+
+  document.getElementById("copyBtn").addEventListener("click", async () => {
+    const btn = document.getElementById("copyBtn");
+    try {
+      await navigator.clipboard.writeText(href);
+    } catch {
+      const ta = document.getElementById("code");
+      ta.select();
+      document.execCommand("copy");
+    }
+    btn.textContent = "Copied ✓";
+    setTimeout(() => { btn.textContent = "Copy bookmarklet code"; }, 1800);
+  });
+})();
+</script>
+</body>
+</html>
